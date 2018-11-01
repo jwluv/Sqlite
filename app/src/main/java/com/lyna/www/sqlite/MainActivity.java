@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnKeyListener{
 
     EditText editTextCountry, editTextCity;
     Button buttonInsert, buttonRead, buttonUpdate, buttonDelete;
@@ -31,22 +31,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         System.out.println("*************   Main onCreate()");
         mdb = dbHelper.getWritableDatabase();
 
-        editTextCountry = (EditText)findViewById(R.id.editTextCountry);
-        editTextCity = (EditText)findViewById(R.id.editTextCity);
+        editTextCountry = findViewById(R.id.editTextCountry);
+        editTextCity = findViewById(R.id.editTextCity);
 
-        buttonInsert = (Button)findViewById(R.id.buttonInsert);
+        buttonInsert = findViewById(R.id.buttonInsert);
         buttonInsert.setOnClickListener(this);
 
-        buttonRead = (Button)findViewById(R.id.buttonRead);
+        buttonRead = findViewById(R.id.buttonRead);
         buttonRead.setOnClickListener(this);
 
-        buttonUpdate = (Button)findViewById(R.id.buttonUpdate);
+        buttonUpdate = findViewById(R.id.buttonUpdate);
         buttonUpdate.setOnClickListener(this);
 
-        buttonDelete = (Button)findViewById(R.id.buttonDelete);
+        buttonDelete = findViewById(R.id.buttonDelete);
         buttonDelete.setOnClickListener(this);
 
-        textViewReadDB = (TextView)findViewById(R.id.textViewReadDB);
+        textViewReadDB = findViewById(R.id.textViewReadDB);
 
         editTextCountry.setOnKeyListener(new View.OnKeyListener() {
             @Override
@@ -62,20 +62,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         });
-        editTextCity.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-
-                if((event.getAction()==KeyEvent.ACTION_DOWN) && (keyCode==KeyEvent.KEYCODE_ENTER)) {
-
-                    InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-                    return true;
-                }
-                return false;
-            }
-        });
+        editTextCountry.setOnKeyListener(this);
+        editTextCity.setOnKeyListener(this);
     }
 
     @Override
@@ -137,4 +125,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mdb.execSQL(query);
     }
 
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if((event.getAction()==KeyEvent.ACTION_DOWN) && (keyCode==KeyEvent.KEYCODE_ENTER)) {
+
+            InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+            return true;
+        }
+        return false;
+    }
 }
