@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Sqlite</string>
+    <string name="editTextCountry">Country</string>
+    <string name="editTextCity">City</string>
+    <string name="buttonInsert">INSERT</string>
+    <string name="buttonRead">Read</string>
+    <string name="buttonUpdate">Update</string>
+    <string name="buttonDelete">Delete</string>
+</resources>
