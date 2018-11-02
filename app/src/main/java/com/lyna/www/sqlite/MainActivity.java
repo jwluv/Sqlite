@@ -13,26 +13,41 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnKeyListener{
 
     EditText editTextCountry, editTextCity;
+    TextView textViewTotalCount;
+    Button buttonSearch, buttonAddVisited;
     Button buttonInsert, buttonRead, buttonUpdate, buttonDelete;
     TextView textViewReadDB;
 
-    MyDBOpenHelper dbHelper;
+    MyDBOpenHelper myDBOpenHelper;
     SQLiteDatabase mdb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        System.out.println("*************   Main onCreate()");
-        dbHelper = new MyDBOpenHelper(this, "awe.db", null, 1);
-        System.out.println("*************   Main onCreate()");
-        mdb = dbHelper.getWritableDatabase();
+        String pkId;
+
+        myDBOpenHelper = new MyDBOpenHelper(this, "awe.db", null, 1);
+        mdb = myDBOpenHelper.getWritableDatabase();
 
         editTextCountry = findViewById(R.id.editTextCountry);
         editTextCity = findViewById(R.id.editTextCity);
+
+        textViewTotalCount = findViewById(R.id.textViewVisitedTotalCount);
+
+        buttonSearch = findViewById(R.id.buttonSearch);
+        buttonSearch.setOnClickListener(this);
+
+        buttonAddVisited = findViewById(R.id.buttonAddVisited);
+        buttonAddVisited.setOnClickListener(this);
 
         buttonInsert = findViewById(R.id.buttonInsert);
         buttonInsert.setOnClickListener(this);
@@ -48,20 +63,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         textViewReadDB = findViewById(R.id.textViewReadDB);
 
-        editTextCountry.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-
-                if((event.getAction()==KeyEvent.ACTION_DOWN) && (keyCode==KeyEvent.KEYCODE_ENTER)) {
-
-                    InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-                    return true;
-                }
-                return false;
-            }
-        });
         editTextCountry.setOnKeyListener(this);
         editTextCity.setOnKeyListener(this);
     }
@@ -73,6 +74,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
         switch(v.getId()) {
+            case R.id.buttonSearch:
+                Search();
+                break;
+            case R.id.buttonAddVisited:
+                AddVisited();
+                break;
             case R.id.buttonInsert:
                 InsertDB();
                 break;
@@ -87,21 +94,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
+    public void Search(){
+
+        String pkId = get_city();
+
+        get_totalcount(pkId);
+    }
+
+    public String get_city(){
+        String country = editTextCountry.getText().toString();
+        String query = "SELECT * FROM awe_country WHERE country= '"+country+"'";
+        String pkId="";
+
+        Cursor cursor =  mdb.rawQuery(query, null);;
+        if(cursor.getCount()>0){
+            cursor.moveToFirst();
+
+            pkId = cursor.getString(cursor.getColumnIndex("pkid"));
+
+            String city = cursor.getString(cursor.getColumnIndex("capital"));
+            editTextCity.setText(String.valueOf(city));
+        }
+        return pkId;
+    }
+    public void get_totalcount(String pkId){
+        String query = "SELECT count(fkid) visitedTotal FROM awe_country LEFT JOIN awe_country_visited ON pkid=fkid AND pkid= '"+pkId+"'";
+        Cursor cursor = mdb.rawQuery(query, null);
+
+        if(cursor.getCount()>0){
+            cursor.moveToFirst();
+
+            int visitedTotal = cursor.getInt(cursor.getColumnIndex("visitedTotal"));
+            textViewTotalCount.setText("Visited Total Count: " + String.valueOf(visitedTotal));
+        }
+    }
+
+    public void AddVisited(){
+
+        String pkId = get_city();
+
+        String query = "INSERT INTO awe_country_visited VALUES('" + pkId + "')";
+        mdb.execSQL(query);
+
+        get_totalcount(pkId);
+    }
 
     public void InsertDB(){
-        String str = "INSERT INTO awe_country VALUES( null, '" + editTextCountry.getText().toString() + "', '" + editTextCity.getText().toString() + " ');";
+
+        String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
+
+        String str = "INSERT INTO awe_country VALUES('" + currentDateTimeString + "', '" + editTextCountry.getText().toString() + "', '" + editTextCity.getText().toString() + " ');";
         mdb.execSQL(str);
     }
 
     public void readDB() {
-        String query = "SELECT * FROM awe_country ORDER BY _id DESC";
+        String query = "SELECT * FROM awe_country ORDER BY pkid DESC";
         Cursor cursor = mdb.rawQuery(query, null);
         String str = "";
 
         while(cursor.moveToNext()) {
-            int id;
+            String id;
 
-            id = cursor.getInt(0);
+            id = cursor.getString(0);
             String country = cursor.getString(cursor.getColumnIndex("country"));
             String city = cursor.getString(2);
             str += (id + ":" + country + "-" + city + "\n");

@@ -20,17 +20,14 @@ public class MyDBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        System.out.println("*************   CREATE TABLE awe_country");
-        db.execSQL("CREATE TABLE awe_country (_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, capital TEXT);");
-        System.out.println("*************   CREATE TABLE awe_country");
-        for(int i=0; i<10; i++){
-            //db.execSQL("INSERT INTO awe_country VALUES( null, '" + "Country"+ i + "', '" + "Capital" + i + "');");
-        }
+        db.execSQL("CREATE TABLE awe_country (pkid TEXT, country TEXT, capital TEXT);");
+        db.execSQL("CREATE TABLE awe_country_visited (fkid TEXT);");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE awe_country ;");
+        db.execSQL("DROP TABLE awe_country_visited ;");
         onCreate(db);
 //        Toast.makeText(this.,"onUpgrade", Toast.LENGTH_LONG).show();
     }
