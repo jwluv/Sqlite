@@ -98,29 +98,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         String pkId = get_city();
 
-        get_totalcount(pkId);
+        if(pkId != null)
+            get_totalcount(pkId);
+
     }
 
     public String get_city(){
         String country = editTextCountry.getText().toString();
         String query = "SELECT * FROM awe_country WHERE country= '"+country+"'";
-        String pkId="";
 
-        Cursor cursor =  mdb.rawQuery(query, null);;
+        Cursor cursor =  mdb.rawQuery(query, null);
         if(cursor.getCount()>0){
+            String pkId="";
             cursor.moveToFirst();
 
             pkId = cursor.getString(cursor.getColumnIndex("pkid"));
 
             String city = cursor.getString(cursor.getColumnIndex("capital"));
-            editTextCity.setText(String.valueOf(city));
+            editTextCity.setText(city);
+            return pkId;
         }
-        return pkId;
+        else {
+            Toast.makeText(getApplicationContext(), editTextCountry.getText() + " is not existed in DB", Toast.LENGTH_SHORT).show();
+            return null;
+        }
     }
     public void get_totalcount(String pkId){
-        String query = "SELECT count(fkid) visitedTotal FROM awe_country LEFT JOIN awe_country_visited ON pkid=fkid AND pkid= '"+pkId+"'";
+        String query = "SELECT count(fkid) visitedTotal FROM awe_country INNER JOIN awe_country_visited ON pkid=fkid AND pkid= '"+pkId+"'";
         Cursor cursor = mdb.rawQuery(query, null);
 
+        int a=cursor.getCount();
         if(cursor.getCount()>0){
             cursor.moveToFirst();
 
@@ -133,10 +140,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         String pkId = get_city();
 
-        String query = "INSERT INTO awe_country_visited VALUES('" + pkId + "')";
-        mdb.execSQL(query);
+        if(pkId != null) {
+            String query = "INSERT INTO awe_country_visited VALUES('" + pkId + "')";
+            mdb.execSQL(query);
 
-        get_totalcount(pkId);
+            get_totalcount(pkId);
+        }
     }
 
     public void InsertDB(){
